@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:registro_mergulho/models/operacao.dart';
 import 'package:registro_mergulho/services/operacao_service.dart';
 import 'package:registro_mergulho/services/altitude_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AdicionarOperacaoScreen extends StatefulWidget {
   const AdicionarOperacaoScreen({super.key});
@@ -59,23 +60,33 @@ class _AdicionarOperacaoScreenState extends State<AdicionarOperacaoScreen> {
 
   void _salvar() async {
     if (_formKey.currentState!.validate()) {
-      final operacao = Operacao(
-        data: DateFormat('yyyy-MM-dd').format(_dataSelecionada),
-        local: _localController.text.trim(),
-        descricao: _descricaoController.text.trim().isEmpty ? null : _descricaoController.text.trim(),
-        altitude: altitude ?? 0,
-        pressaoAmbiente: pressaoAmbiente ?? 1.0,
-      );
+      try {
+        final posicao = await Geolocator.getCurrentPosition();
+        final altitude = await AltitudeService().obterAltitude();
 
-      await OperacaoService().inserirOperacao(operacao);
+        final operacao = Operacao(
+          data: _dataSelecionada,
+          local: _localController.text.trim(),
+          descricao: _descricaoController.text.trim(),
+          latitude: posicao.latitude,
+          longitude: posicao.longitude,
+          altitude: altitude,
+          pressaoAmbiente: null, // Pode ser calculada depois se necessário
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Operação salva com sucesso!')),
-      );
+        await OperacaoService().inserirOperacao(operacao);
 
-      Navigator.pop(context);
+        if (!mounted) return;
+        Navigator.pop(context);
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao obter localização: $e')),
+        );
+      }
     }
   }
+
 
   Future<void> _selecionarData() async {
     final dataEscolhida = await showDatePicker(

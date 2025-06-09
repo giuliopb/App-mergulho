@@ -10,6 +10,9 @@ class Mergulho {
   DateTime horarioSubida;
   int pressaoInicial;
   int pressaoFinal;
+  double? latitude;
+  double? longitude;
+  int? altitude;
 
   Mergulho({
     String? id,
@@ -21,6 +24,9 @@ class Mergulho {
     required this.horarioSubida,
     required this.pressaoInicial,
     required this.pressaoFinal,
+    this.latitude,
+    this.longitude,
+    this.altitude,
   }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() {
@@ -34,6 +40,9 @@ class Mergulho {
       'horario_subida': horarioSubida.toIso8601String(),
       'pressao_inicial': pressaoInicial,
       'pressao_final': pressaoFinal,
+      'latitude': latitude,
+      'longitude': longitude,
+      'altitude': altitude,
     };
   }
 
@@ -48,6 +57,9 @@ class Mergulho {
       horarioSubida: DateTime.parse(map['horario_subida']),
       pressaoInicial: map['pressao_inicial'],
       pressaoFinal: map['pressao_final'],
+      latitude: map['latitude']?.toDouble(),
+      longitude: map['longitude']?.toDouble(),
+      altitude: map['altitude'],
     );
   }
 }

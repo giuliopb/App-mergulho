@@ -17,7 +17,7 @@ class DatabaseService {
     final path = join(await getDatabasesPath(), 'registro_mergulho.db');
     return await openDatabase(
       path,
-      version: 2, // versão nova
+      version: 4, // versão nova
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -64,8 +64,11 @@ class DatabaseService {
         condicoes_mar TEXT,
         observacoes TEXT,
         altitude_efetiva INTEGER,
-        horario_descida TEXT,        -- ADICIONADO
-        horario_subida TEXT,         -- ADICIONADO
+        horario_descida TEXT,
+        horario_subida TEXT,
+        latitude REAL,
+        longitude REAL,
+        altitude INTEGER,
         FOREIGN KEY (operacao_id) REFERENCES Operacao(id),
         FOREIGN KEY (mergulhador_id) REFERENCES Mergulhador(id)
       )
@@ -81,5 +84,11 @@ class DatabaseService {
       await db.execute('ALTER TABLE Mergulho ADD COLUMN horario_descida TEXT');
       await db.execute('ALTER TABLE Mergulho ADD COLUMN horario_subida TEXT');
     }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE Mergulho ADD COLUMN latitude REAL');
+      await db.execute('ALTER TABLE Mergulho ADD COLUMN longitude REAL');
+      await db.execute('ALTER TABLE Mergulho ADD COLUMN altitude INTEGER');
+    }
+
   }
 }

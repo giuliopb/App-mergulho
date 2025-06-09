@@ -1,28 +1,34 @@
 import 'package:uuid/uuid.dart';
 
 class Operacao {
-  String id;
-  String data;
-  String local;
-  String? descricao;
-  int altitude;
-  double pressaoAmbiente;
+  final String id;
+  final DateTime data;
+  final String local;
+  final String descricao;
+  final double? latitude;
+  final double? longitude;
+  final int? altitude;
+  final double? pressaoAmbiente;
 
   Operacao({
     String? id,
     required this.data,
     required this.local,
-    this.descricao,
-    required this.altitude,
-    required this.pressaoAmbiente,
+    required this.descricao,
+    this.latitude,
+    this.longitude,
+    this.altitude,
+    this.pressaoAmbiente,
   }) : id = id ?? const Uuid().v4();
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'data': data,
+      'data': data.toIso8601String(),
       'local': local,
       'descricao': descricao,
+      'latitude': latitude,
+      'longitude': longitude,
       'altitude': altitude,
       'pressaoAmbiente': pressaoAmbiente,
     };
@@ -31,11 +37,13 @@ class Operacao {
   factory Operacao.fromMap(Map<String, dynamic> map) {
     return Operacao(
       id: map['id'],
-      data: map['data'],
+      data: DateTime.parse(map['data']),
       local: map['local'],
       descricao: map['descricao'],
+      latitude: map['latitude']?.toDouble(),
+      longitude: map['longitude']?.toDouble(),
       altitude: map['altitude'],
-      pressaoAmbiente: map['pressaoAmbiente'],
+      pressaoAmbiente: map['pressaoAmbiente']?.toDouble(),
     );
   }
 }

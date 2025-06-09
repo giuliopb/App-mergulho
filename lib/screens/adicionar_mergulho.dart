@@ -4,6 +4,10 @@ import 'package:registro_mergulho/models/mergulho.dart';
 import 'package:registro_mergulho/models/mergulhador.dart';
 import 'package:registro_mergulho/services/database.dart';
 import 'package:registro_mergulho/services/mergulho_service.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:registro_mergulho/services/altitude_service.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 class AdicionarMergulhoScreen extends StatefulWidget {
   final String operacaoId;
@@ -21,7 +25,7 @@ class _AdicionarMergulhoScreenState extends State<AdicionarMergulhoScreen> {
   final _pressaoFinalController = TextEditingController();
 
   List<Mergulhador> mergulhadores = [];
-  Mergulhador? mergulhadorSelecionado;
+  List<Mergulhador> mergulhadoresSelecionados = [];
 
   DateTime? horarioDescida;
   DateTime? horarioSubida;
@@ -70,6 +74,16 @@ class _AdicionarMergulhoScreenState extends State<AdicionarMergulhoScreen> {
 
   void _salvar() async {
     if (_formKey.currentState!.validate() && horarioDescida != null && horarioSubida != null) {
+      if (mergulhadoresSelecionados.isEmpty || mergulhadoresSelecionados.length > 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selecione de 1 a 3 mergulhadores.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
       final tempoFundo = horarioSubida!.difference(horarioDescida!).inMinutes;
 
       final profundidade = int.parse(_profundidadeController.text.trim());
@@ -79,25 +93,33 @@ class _AdicionarMergulhoScreenState extends State<AdicionarMergulhoScreen> {
       final consumoTotal = pressaoInicial - pressaoFinal;
       final consumoPor10Min = consumoTotal / tempoFundo * 10;
 
-      final mergulho = Mergulho(
-        operacaoId: widget.operacaoId,
-        mergulhadorId: mergulhadorSelecionado!.id,
-        profundidadeMax: profundidade,
-        tempoFundo: tempoFundo,
-        horarioDescida: horarioDescida!,
-        horarioSubida: horarioSubida!,
-        pressaoInicial: pressaoInicial,
-        pressaoFinal: pressaoFinal,
-      );
+      final posicao = await Geolocator.getCurrentPosition();
+      final altitude = AltitudeService.arredondarAltitude(posicao.altitude.toInt());
 
-      await MergulhoService().inserirMergulho(mergulho);
+      for (var m in mergulhadoresSelecionados) {
+        final mergulho = Mergulho(
+          operacaoId: widget.operacaoId,
+          mergulhadorId: m.id,
+          profundidadeMax: profundidade,
+          tempoFundo: tempoFundo,
+          horarioDescida: horarioDescida!,
+          horarioSubida: horarioSubida!,
+          pressaoInicial: pressaoInicial,
+          pressaoFinal: pressaoFinal,
+          latitude: posicao.latitude,
+          longitude: posicao.longitude,
+          altitude: altitude,
+        );
+        await MergulhoService().inserirMergulho(mergulho);
+      }
+
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Mergulho salvo. Consumo: ${consumoPor10Min.toStringAsFixed(1)} bar a cada 10 min.',
           ),
-          duration: Duration(hours: 1),
+          duration: const Duration(hours: 1),
           action: SnackBarAction(
             label: 'X',
             onPressed: () {
@@ -106,6 +128,8 @@ class _AdicionarMergulhoScreenState extends State<AdicionarMergulhoScreen> {
           ),
         ),
       );
+
+      Navigator.pop(context);
     }
   }
 
@@ -127,18 +151,28 @@ class _AdicionarMergulhoScreenState extends State<AdicionarMergulhoScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              DropdownButtonFormField<Mergulhador>(
-                value: mergulhadorSelecionado,
-                items: mergulhadores.map((m) {
-                  return DropdownMenuItem(
-                    value: m,
-                    child: Text("${m.graduacao} ${m.nome}"),
-                  );
-                }).toList(),
-                onChanged: (m) => setState(() => mergulhadorSelecionado = m),
-                decoration: const InputDecoration(labelText: 'Mergulhador'),
-                validator: (value) => value == null ? 'Selecione o mergulhador' : null,
+              const Text(
+                'Selecione até 3 mergulhadores:',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
+              ...mergulhadores.map((m) {
+                final selecionado = mergulhadoresSelecionados.contains(m);
+                return CheckboxListTile(
+                  title: Text('${m.graduacao} ${m.nome}'),
+                  value: selecionado,
+                  onChanged: (bool? checked) {
+                    setState(() {
+                      if (checked == true) {
+                        if (mergulhadoresSelecionados.length < 3) {
+                          mergulhadoresSelecionados.add(m);
+                        }
+                      } else {
+                        mergulhadoresSelecionados.remove(m);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _profundidadeController,
