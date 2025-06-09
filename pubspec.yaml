@@ -1,0 +1,25 @@
+name: registro_mergulho
+description: Aplicativo de registro de mergulho para bombeiros militares.
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sqflite: ^2.3.2
+  path_provider: ^2.1.2
+  uuid: ^4.5.1
+  intl: ^0.20.2
+  geolocator: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
