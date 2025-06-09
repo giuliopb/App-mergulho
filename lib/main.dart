@@ -1,17 +1,17 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'package:flutter/material.dart';
 import 'package:registro_mergulho/screens/home_screen.dart';
 import 'package:registro_mergulho/services/database.dart';
 
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // APAGAR O BANCO ANTIGO
-  final path = join(await getDatabasesPath(), 'registro_mergulho.db');
-  await deleteDatabase(path);
+  // EXCLUI O BANCO DE DADOS LOCAL ANTIGO — USE APENAS PARA TESTES
+  final dbPath = await getDatabasesPath();
+  await deleteDatabase(join(dbPath, 'registro_mergulho.db'));
 
-  await DatabaseService().database;
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -29,11 +29,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 /*
-import 'package:flutter/material.dart';
-import 'package:registro_mergulho/screens/home_screen.dart';
-import 'package:registro_mergulho/services/database.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,4 +55,5 @@ class MyApp extends StatelessWidget {
       home: const HomeScreen(),
     );
   }
-} */
+}
+*/

@@ -17,7 +17,7 @@ class DatabaseService {
     final path = join(await getDatabasesPath(), 'registro_mergulho.db');
     return await openDatabase(
       path,
-      version: 2, // << versão nova
+      version: 2, // versão nova
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -64,6 +64,8 @@ class DatabaseService {
         condicoes_mar TEXT,
         observacoes TEXT,
         altitude_efetiva INTEGER,
+        horario_descida TEXT,        -- ADICIONADO
+        horario_subida TEXT,         -- ADICIONADO
         FOREIGN KEY (operacao_id) REFERENCES Operacao(id),
         FOREIGN KEY (mergulhador_id) REFERENCES Mergulhador(id)
       )
@@ -72,7 +74,12 @@ class DatabaseService {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
+      // migrações da tabela Mergulhador
       await db.execute('ALTER TABLE Mergulhador ADD COLUMN matricula TEXT');
+
+      // migrações da tabela Mergulho
+      await db.execute('ALTER TABLE Mergulho ADD COLUMN horario_descida TEXT');
+      await db.execute('ALTER TABLE Mergulho ADD COLUMN horario_subida TEXT');
     }
   }
 }

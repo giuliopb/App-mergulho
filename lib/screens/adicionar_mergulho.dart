@@ -97,10 +97,15 @@ class _AdicionarMergulhoScreenState extends State<AdicionarMergulhoScreen> {
           content: Text(
             'Mergulho salvo. Consumo: ${consumoPor10Min.toStringAsFixed(1)} bar a cada 10 min.',
           ),
+          duration: Duration(hours: 1),
+          action: SnackBarAction(
+            label: 'X',
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
         ),
       );
-
-      Navigator.pop(context);
     }
   }
 
