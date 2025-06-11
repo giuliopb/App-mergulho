@@ -17,24 +17,28 @@ class DatabaseService {
     final path = join(await getDatabasesPath(), 'registro_mergulho.db');
     return await openDatabase(
       path,
-      version: 4, // versão nova
+      version: 4, // Versão atualizada
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    // Criação da tabela Operacao com novos campos de localização
     await db.execute('''
       CREATE TABLE Operacao (
         id TEXT PRIMARY KEY,
         data TEXT,
         local TEXT,
         descricao TEXT,
+        latitude REAL,
+        longitude REAL,
         altitude INTEGER,
         pressaoAmbiente REAL
       )
     ''');
 
+    // Criação da tabela Mergulhador
     await db.execute('''
       CREATE TABLE Mergulhador (
         id TEXT PRIMARY KEY,
@@ -44,6 +48,7 @@ class DatabaseService {
       )
     ''');
 
+    // Criação da tabela Mergulho com novos campos de localização e horário
     await db.execute('''
       CREATE TABLE Mergulho (
         id TEXT PRIMARY KEY,
@@ -77,18 +82,23 @@ class DatabaseService {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // migrações da tabela Mergulhador
+      // Migração da tabela Mergulhador
       await db.execute('ALTER TABLE Mergulhador ADD COLUMN matricula TEXT');
-
-      // migrações da tabela Mergulho
+      // Migração da tabela Mergulho - horários
       await db.execute('ALTER TABLE Mergulho ADD COLUMN horario_descida TEXT');
       await db.execute('ALTER TABLE Mergulho ADD COLUMN horario_subida TEXT');
     }
+    if (oldVersion < 3) {
+      // Migração da tabela Operacao - localização
+      await db.execute('ALTER TABLE Operacao ADD COLUMN latitude REAL');
+      await db.execute('ALTER TABLE Operacao ADD COLUMN longitude REAL');
+      await db.execute('ALTER TABLE Operacao ADD COLUMN altitude INTEGER');
+    }
     if (oldVersion < 4) {
+      // Migração da tabela Mergulho - localização
       await db.execute('ALTER TABLE Mergulho ADD COLUMN latitude REAL');
       await db.execute('ALTER TABLE Mergulho ADD COLUMN longitude REAL');
       await db.execute('ALTER TABLE Mergulho ADD COLUMN altitude INTEGER');
     }
-
   }
 }

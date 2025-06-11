@@ -19,146 +19,90 @@ class _AdicionarOperacaoScreenState extends State<AdicionarOperacaoScreen> {
   final _descricaoController = TextEditingController();
   DateTime _dataSelecionada = DateTime.now();
 
-  int? altitude;
-  double? pressaoAmbiente;
-  bool carregandoAltitude = false;
+  Future<void> _salvar() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  @override
-  void initState() {
-    super.initState();
-    obterAltitude();
-  }
-
-  Future<void> obterAltitude() async {
-    setState(() {
-      carregandoAltitude = true;
-    });
+    // 1) pedir permissão
+    final status = await Permission.location.request();
+    if (status != PermissionStatus.granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permissão de localização negada')),
+      );
+      return;
+    }
 
     try {
-      Position pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+      // 2) obter posição (com altitude)
+      final posicao = await Geolocator.getCurrentPosition();
+
+      // 3) arredondar altitude
+      final altitude =
+          AltitudeService.arredondarAltitude(posicao.altitude.toInt());
+
+      // 4) calcular pressão ambiente, se quiser registrar
+      final pressaoAmb = AltitudeService.calcularPressaoAmbiente(altitude);
+
+      final operacao = Operacao(
+        data: _dataSelecionada,
+        local: _localController.text.trim(),
+        descricao: _descricaoController.text.trim(),
+        latitude: posicao.latitude,
+        longitude: posicao.longitude,
+        altitude: altitude,
+        pressaoAmbiente: pressaoAmb,
       );
-      int altitudeReal = pos.altitude.round();
-      int altArredondada = AltitudeService.arredondarAltitude(altitudeReal);
-      double pressao = AltitudeService.calcularPressaoAmbiente(altArredondada);
 
-      setState(() {
-        altitude = altArredondada;
-        pressaoAmbiente = pressao;
-      });
+      await OperacaoService().inserirOperacao(operacao);
+
+      if (!mounted) return;
+      Navigator.pop(context);
     } catch (e) {
-      setState(() {
-        altitude = 0;
-        pressaoAmbiente = 1.0;
-      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao obter localização: $e')),
+      );
     }
-
-    setState(() {
-      carregandoAltitude = false;
-    });
-  }
-
-  void _salvar() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final posicao = await Geolocator.getCurrentPosition();
-        final altitude = await AltitudeService().obterAltitude();
-
-        final operacao = Operacao(
-          data: _dataSelecionada,
-          local: _localController.text.trim(),
-          descricao: _descricaoController.text.trim(),
-          latitude: posicao.latitude,
-          longitude: posicao.longitude,
-          altitude: altitude,
-          pressaoAmbiente: null, // Pode ser calculada depois se necessário
-        );
-
-        await OperacaoService().inserirOperacao(operacao);
-
-        if (!mounted) return;
-        Navigator.pop(context);
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao obter localização: $e')),
-        );
-      }
-    }
-  }
-
-
-  Future<void> _selecionarData() async {
-    final dataEscolhida = await showDatePicker(
-      context: context,
-      initialDate: _dataSelecionada,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (dataEscolhida != null) {
-      setState(() {
-        _dataSelecionada = dataEscolhida;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _localController.dispose();
-    _descricaoController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final dataFormatada = DateFormat('dd/MM/yyyy').format(_dataSelecionada);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Adicionar Operação')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
-              TextFormField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: 'Data',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: _selecionarData,
-                  ),
-                ),
-                controller: TextEditingController(text: dataFormatada),
+              // data
+              ListTile(
+                title: Text('Data: ${DateFormat('dd/MM/yyyy').format(_dataSelecionada)}'),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final nova = await showDatePicker(
+                    context: context,
+                    initialDate: _dataSelecionada,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+                  if (nova != null) {
+                    setState(() => _dataSelecionada = nova);
+                  }
+                },
               ),
-              const SizedBox(height: 16),
               TextFormField(
                 controller: _localController,
                 decoration: const InputDecoration(labelText: 'Local'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Informe o local' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Informe o local' : null,
               ),
-              const SizedBox(height: 16),
               TextFormField(
                 controller: _descricaoController,
-                decoration: const InputDecoration(labelText: 'Descrição (opcional)'),
+                decoration: const InputDecoration(labelText: 'Descrição'),
               ),
-              const SizedBox(height: 32),
-              carregandoAltitude
-                  ? const Center(child: CircularProgressIndicator())
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Altitude (arredondada): ${altitude ?? "N/A"} metros'),
-                        Text('Pressão ambiente: ${pressaoAmbiente?.toStringAsFixed(2) ?? "N/A"} atm'),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _salvar,
-                child: const Text('Salvar'),
+                child: const Text('Salvar Operação'),
               ),
             ],
           ),

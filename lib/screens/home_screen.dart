@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'adicionar_mergulhador.dart';
-import 'package:registro_mergulho/screens/adicionar_operacao.dart';
+import 'package:registro_mergulho/screens/lista_mergulhadores.dart';
 import 'package:registro_mergulho/screens/lista_operacoes.dart';
 import 'package:registro_mergulho/screens/historico_mergulho.dart';
-
-
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,46 +12,43 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Registro de Mergulho')),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ElevatedButton( //                   adicionar mergulhador
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AdicionarMergulhadorScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const ListaMergulhadoresScreen(),
+                  ),
                 );
               },
-              child: const Text('Adicionar Mergulhador'),
+              child: const Text('Mergulhadores'),
             ),
             const SizedBox(height: 20),
-            ElevatedButton( //                        adicionar operações
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const AdicionarOperacaoScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const ListaOperacoesScreen(),
+                  ),
                 );
               },
-              child: const Text('Adicionar Operação'),
+              child: const Text('Operações'),
             ),
-            ElevatedButton( //                      lista de operaçoes
+            const SizedBox(height: 20),
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ListaOperacoesScreen()),
-                );
-              },
-              child: const Text('Ver Operações'),
-            ),
-            ElevatedButton( //                        historico de mergulho
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HistoricoMergulhoScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const HistoricoMergulhoScreen(),
+                  ),
                 );
               },
               child: const Text('Histórico de Mergulhos'),
             ),
-
           ],
         ),
       ),

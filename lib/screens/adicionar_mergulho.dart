@@ -3,10 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:registro_mergulho/models/mergulho.dart';
 import 'package:registro_mergulho/models/mergulhador.dart';
 import 'package:registro_mergulho/services/database.dart';
-import 'package:registro_mergulho/services/mergulho_service.dart';
+import '../services/mergulho_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:registro_mergulho/services/altitude_service.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart';  
 
 
 class AdicionarMergulhoScreen extends StatefulWidget {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:registro_mergulho/models/operacao.dart';
-import 'package:registro_mergulho/services/database.dart';
+import 'package:registro_mergulho/services/operacao_service.dart';
+import 'adicionar_operacao.dart';
 import 'detalhe_operacao.dart';
 
 class ListaOperacoesScreen extends StatefulWidget {
@@ -16,15 +18,27 @@ class _ListaOperacoesScreenState extends State<ListaOperacoesScreen> {
   @override
   void initState() {
     super.initState();
-    carregarOperacoes();
+    _carregarOperacoes();
   }
 
-  Future<void> carregarOperacoes() async {
-    final db = await DatabaseService().database;
-    final maps = await db.query('Operacao');
-    setState(() {
-      operacoes = maps.map((e) => Operacao.fromMap(e)).toList();
-    });
+  Future<void> _carregarOperacoes() async {
+    final lista = await OperacaoService().buscarOperacoes();
+    setState(() => operacoes = lista);
+  }
+
+  void _navegarAdicionarOperacao() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AdicionarOperacaoScreen()),
+    );
+    _carregarOperacoes(); // atualiza após voltar
+  }
+
+  void _navegarDetalhes(Operacao op) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => DetalheOperacaoScreen(operacao: op)),
+    );
   }
 
   @override
@@ -37,15 +51,14 @@ class _ListaOperacoesScreenState extends State<ListaOperacoesScreen> {
           final op = operacoes[index];
           return ListTile(
             title: Text(op.local),
-            subtitle: Text(op.data),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => DetalheOperacaoScreen(operacao: op)),
-              );
-            },
+            subtitle: Text(DateFormat('dd/MM/yyyy').format(op.data)),
+            onTap: () => _navegarDetalhes(op),
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navegarAdicionarOperacao,
+        child: const Icon(Icons.add),
       ),
     );
   }
