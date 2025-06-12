@@ -1,10 +1,10 @@
 import 'package:uuid/uuid.dart';
 
 class Mergulhador {
-  String id;
-  String nome;
-  String matricula;
-  String graduacao;
+  final String id;
+  final String nome;
+  final String matricula;
+  final String graduacao;
 
   Mergulhador({
     String? id,
@@ -13,6 +13,15 @@ class Mergulhador {
     required this.graduacao,
   }) : id = id ?? const Uuid().v4();
 
+  factory Mergulhador.fromMap(Map<String, dynamic> map) {
+    return Mergulhador(
+      id: map['id'] as String?,               // id é String no banco
+      nome: map['nome'] as String,
+      matricula: map['matricula'] as String,
+      graduacao: map['graduacao'] as String,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -20,14 +29,5 @@ class Mergulhador {
       'matricula': matricula,
       'graduacao': graduacao,
     };
-  }
-
-  factory Mergulhador.fromMap(Map<String, dynamic> map) {
-    return Mergulhador(
-      id: map['id'],
-      nome: map['nome'],
-      matricula: map['matricula'],
-      graduacao: map['graduacao'],
-    );
   }
 }

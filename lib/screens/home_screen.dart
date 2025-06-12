@@ -1,53 +1,43 @@
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:registro_mergulho/screens/lista_mergulhadores.dart';
-import 'package:registro_mergulho/screens/lista_operacoes.dart';
-import 'package:registro_mergulho/screens/historico_mergulho.dart';
+import 'lista_mergulhadores.dart';
+import 'lista_operacoes.dart';
+import 'historico_mergulho.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registro de Mergulho')),
+      appBar: AppBar(title: const Text('App Mergulho')),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ListaMergulhadoresScreen(),
-                  ),
-                );
-              },
-              child: const Text('Mergulhadores'),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.person),
+              label: const Text('Mergulhadores'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MergulhadoresListScreen()),
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ListaOperacoesScreen(),
-                  ),
-                );
-              },
-              child: const Text('Operações'),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.map),
+              label: const Text('Operações'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ListaOperacoesScreen()),
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const HistoricoMergulhoScreen(),
-                  ),
-                );
-              },
-              child: const Text('Histórico de Mergulhos'),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.list),
+              label: const Text('Mergulhos'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistoricoMergulhoScreen()),
+              ),
             ),
           ],
         ),

@@ -1,59 +1,56 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:registro_mergulho/screens/home_screen.dart';
-import 'package:registro_mergulho/services/database.dart';
+import 'package:registro_mergulho/screens/lista_mergulhadores.dart';
+import 'package:registro_mergulho/screens/lista_operacoes.dart';
+import 'package:registro_mergulho/screens/adicionar_mergulhador.dart';
+import 'package:registro_mergulho/screens/adicionar_operacao.dart';
+import 'package:registro_mergulho/screens/adicionar_mergulho.dart';
+import 'package:registro_mergulho/screens/detalhe_operacao.dart';
+import 'package:registro_mergulho/screens/historico_mergulho.dart';
 
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+void main() => runApp(MyApp());
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // EXCLUI O BANCO DE DADOS LOCAL ANTIGO — USE APENAS PARA TESTES
-  final dbPath = await getDatabasesPath();
-  await deleteDatabase(join(dbPath, 'registro_mergulho.db'));
-
-  runApp(const MyApp());
-}
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+  // Removi o construtor const pra combinar com seus widgets
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Registro de Mergulho',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-      ),
-      home: const HomeScreen(),
+      title: 'App Mergulho',
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(builder: (_) => HomeScreen());
+          case '/mergulhadores':
+            return MaterialPageRoute(builder: (_) => MergulhadoresListScreen());
+          case '/operacoes':
+            return MaterialPageRoute(builder: (_) => ListaOperacoesScreen());
+          case '/adicionarMergulhador':
+            return MaterialPageRoute(builder: (_) => AdicionarMergulhadorScreen());
+          case '/adicionarOperacao':
+            return MaterialPageRoute(builder: (_) => AdicionarOperacaoScreen());
+          case '/detalheOperacao':
+            final opId = settings.arguments as int;
+            return MaterialPageRoute(
+              builder: (_) => DetalheOperacaoScreen(
+                // Convertendo para String, pois seu widget espera String operacaoId
+                operacaoId: opId.toString(),
+              ),
+            );
+          case '/adicionarMergulho':
+            final opId = settings.arguments as int;
+            return MaterialPageRoute(
+              builder: (_) => AdicionarMergulhoScreen(
+                operacaoId: opId.toString(),
+              ),
+            );
+          case '/historicoMergulho':
+            return MaterialPageRoute(builder: (_) => HistoricoMergulhoScreen());
+          default:
+            return null; // rota desconhecida
+        }
+      },
     );
   }
 }
-/*
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await DatabaseService().database;
-  } catch (e) {
-    debugPrint('Erro ao inicializar o banco de dados: $e');
-  }
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Registro de Mergulho',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-      ),
-      home: const HomeScreen(),
-    );
-  }
-}
-*/

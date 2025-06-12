@@ -3,11 +3,10 @@ import 'package:registro_mergulho/services/database.dart';
 
 class OperacaoService {
   /// Insere uma nova operação
-  Future<void> inserirOperacao(Operacao operacao) async {
+  Future<int> inserirOperacao(Operacao op) async {
     final db = await DatabaseService().database;
-    await db.insert('Operacao', operacao.toMap());
+    return db.insert('Operacao', op.toMap());
   }
-
   /// Busca todas as operações, ordenadas da mais recente para a mais antiga
   Future<List<Operacao>> buscarOperacoes() async {
     final db = await DatabaseService().database;
@@ -32,7 +31,7 @@ class OperacaoService {
     return null;
   }
 
-  /// Atualiza os dados de uma operação existente
+/// Atualiza uma operação existente
   Future<void> atualizarOperacao(Operacao operacao) async {
     final db = await DatabaseService().database;
     await db.update(

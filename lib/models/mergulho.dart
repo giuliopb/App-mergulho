@@ -1,18 +1,22 @@
+// lib/models/mergulho.dart
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 class Mergulho {
-  String id;
-  String operacaoId;
-  String mergulhadorId;
-  int profundidadeMax;
-  int tempoFundo;
-  DateTime horarioDescida;
-  DateTime horarioSubida;
-  int pressaoInicial;
-  int pressaoFinal;
-  double? latitude;
-  double? longitude;
-  int? altitude;
+  final String id;
+  final String operacaoId;
+  final String mergulhadorId;
+  final int profundidadeMax;
+  final int tempoFundo;
+  final DateTime horarioDescida;
+  final DateTime horarioSubida;
+  final int pressaoInicial;
+  final int pressaoFinal;
+  final double? latitude;
+  final double? longitude;
+  final int? altitude;
+  final String? fotoMergulho;
+  final String? oQueFoiRealizado;
 
   Mergulho({
     String? id,
@@ -27,7 +31,28 @@ class Mergulho {
     this.latitude,
     this.longitude,
     this.altitude,
+    this.fotoMergulho,
+    this.oQueFoiRealizado,
   }) : id = id ?? const Uuid().v4();
+
+  factory Mergulho.fromMap(Map<String, dynamic> map) {
+    return Mergulho(
+      id: map['id'] as String?,
+      operacaoId: map['operacao_id'] as String,
+      mergulhadorId: map['mergulhador_id'] as String,
+      profundidadeMax: map['profundidade_max'] as int? ?? 0,
+      tempoFundo: map['tempo_fundo'] as int? ?? 0,
+      horarioDescida: DateTime.parse(map['horario_descida'] as String),
+      horarioSubida: DateTime.parse(map['horario_subida'] as String),
+      pressaoInicial: map['pressao_inicial'] as int? ?? 0,
+      pressaoFinal: map['pressao_final'] as int? ?? 0,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      altitude: map['altitude'] as int?,
+      fotoMergulho: map['foto_mergulho'] as String?,
+      oQueFoiRealizado: map['o_que_foi_realizado'] as String?,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -43,23 +68,8 @@ class Mergulho {
       'latitude': latitude,
       'longitude': longitude,
       'altitude': altitude,
+      'foto_mergulho': fotoMergulho,
+      'o_que_foi_realizado': oQueFoiRealizado,
     };
-  }
-
-  factory Mergulho.fromMap(Map<String, dynamic> map) {
-    return Mergulho(
-      id: map['id'],
-      operacaoId: map['operacao_id'],
-      mergulhadorId: map['mergulhador_id'],
-      profundidadeMax: map['profundidade_max'],
-      tempoFundo: map['tempo_fundo'],
-      horarioDescida: DateTime.parse(map['horario_descida']),
-      horarioSubida: DateTime.parse(map['horario_subida']),
-      pressaoInicial: map['pressao_inicial'],
-      pressaoFinal: map['pressao_final'],
-      latitude: map['latitude']?.toDouble(),
-      longitude: map['longitude']?.toDouble(),
-      altitude: map['altitude'],
-    );
   }
 }

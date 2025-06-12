@@ -1,47 +1,36 @@
+// lib/services/mergulhador_service.dart
+import 'package:sqflite/sqflite.dart';
 import 'package:registro_mergulho/models/mergulhador.dart';
 import 'package:registro_mergulho/services/database.dart';
-import 'package:sqflite/sqflite.dart';
 
 /// Serviço para operações CRUD de Mergulhador no banco SQLite
 class MergulhadorService {
-  /// Insere um novo mergulhador
-  Future<void> inserirMergulhador(Mergulhador mergulhador) async {
-    final Database db = await DatabaseService().database;
-    await db.insert(
-      'Mergulhador',
-      mergulhador.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+  final dbService = DatabaseService();
+
+  Future<List<Mergulhador>> getAll() async {
+    final db = await dbService.database;
+    final res = await db.query('Mergulhador', orderBy: 'nome');
+    return res.map((e) => Mergulhador.fromMap(e)).toList();
   }
 
-  /// Busca todos os mergulhadores, ordenados por nome
-  Future<List<Mergulhador>> buscarMergulhadores() async {
-    final Database db = await DatabaseService().database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'Mergulhador',
-      orderBy: 'nome COLLATE NOCASE',
-    );
-    return List.generate(
-      maps.length,
-      (i) => Mergulhador.fromMap(maps[i]),
-    );
+  Future<int> insert(Mergulhador m) async {
+    final db = await dbService.database;
+    return db.insert('Mergulhador', m.toMap());
   }
 
-  /// Atualiza um mergulhador existente
-  Future<void> atualizarMergulhador(Mergulhador mergulhador) async {
-    final Database db = await DatabaseService().database;
-    await db.update(
+  Future<int> update(Mergulhador m) async {
+    final db = await dbService.database;
+    return db.update(
       'Mergulhador',
-      mergulhador.toMap(),
+      m.toMap(),
       where: 'id = ?',
-      whereArgs: [mergulhador.id],
+      whereArgs: [m.id],
     );
   }
 
-  /// Remove um mergulhador pelo ID
-  Future<void> deletarMergulhador(String id) async {
-    final Database db = await DatabaseService().database;
-    await db.delete(
+  Future<int> delete(String id) async {
+    final db = await dbService.database;
+    return db.delete(
       'Mergulhador',
       where: 'id = ?',
       whereArgs: [id],

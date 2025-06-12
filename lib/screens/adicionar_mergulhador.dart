@@ -3,7 +3,8 @@ import 'package:registro_mergulho/models/mergulhador.dart';
 import 'package:registro_mergulho/services/mergulhador_service.dart';
 
 class AdicionarMergulhadorScreen extends StatefulWidget {
-  const AdicionarMergulhadorScreen({super.key});
+  final Mergulhador? mergulhador;   // << parâmetro opcional
+  const AdicionarMergulhadorScreen({Key? key, this.mergulhador}) : super(key: key);
 
   @override
   State<AdicionarMergulhadorScreen> createState() => _AdicionarMergulhadorScreenState();
@@ -13,17 +14,18 @@ class _AdicionarMergulhadorScreenState extends State<AdicionarMergulhadorScreen>
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _matriculaController = TextEditingController();
-
-  final List<String> graduacoes = [
-    'Sd',
-    'Cb',
-    '3º Sgt',
-    '2º Sgt',
-    '1º Sgt',
-    'Sub Ten'
-  ];
-
+  final List<String> graduacoes = ['Sd','Cb','3º Sgt','2º Sgt','1º Sgt','Sub Ten'];
   String? _graduacaoSelecionada;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.mergulhador != null) {
+      _nomeController.text = widget.mergulhador!.nome;
+      _matriculaController.text = widget.mergulhador!.matricula;
+      _graduacaoSelecionada = widget.mergulhador!.graduacao;
+    }
+  }
 
   @override
   void dispose() {
@@ -33,75 +35,74 @@ class _AdicionarMergulhadorScreenState extends State<AdicionarMergulhadorScreen>
   }
 
   void _salvar() async {
-    if (_formKey.currentState!.validate()) {
-      final novoMergulhador = Mergulhador(
-        nome: _nomeController.text.trim(),
-        matricula: _matriculaController.text.trim(),
-        graduacao: _graduacaoSelecionada!,
-      );
+    if (!_formKey.currentState!.validate()) return;
 
-      await MergulhadorService().inserirMergulhador(novoMergulhador);
+    final m = Mergulhador(
+      id: widget.mergulhador?.id,
+      nome: _nomeController.text.trim(),
+      matricula: _matriculaController.text.trim(),
+      graduacao: _graduacaoSelecionada!,
+    );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mergulhador salvo com sucesso!')),
-      );
-
-      Navigator.pop(context);
+    final service = MergulhadorService();
+    if (widget.mergulhador == null) {
+      await service.insert(m);
+    } else {
+      await service.update(m);
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(widget.mergulhador == null
+          ? 'Mergulhador criado'
+          : 'Mergulhador atualizado')),
+    );
+    Navigator.pop(context, true);
   }
 
-  String? _validarMatricula(String? value) {
+  String? _validarMatricula(String? v) {
     final regex = RegExp(r'^\d{6,7}-\d$');
-    if (value == null || value.isEmpty) return 'Informe a matrícula';
-    if (!regex.hasMatch(value)) return 'Formato inválido (ex: 719806-0)';
+    if (v == null || v.isEmpty) return 'Informe a matrícula';
+    if (!regex.hasMatch(v)) return 'Formato inválido (ex: 719806-0)';
     return null;
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext ctx) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Adicionar Mergulhador')),
+      appBar: AppBar(
+        title: Text(widget.mergulhador == null
+            ? 'Novo Mergulhador'
+            : 'Editar Mergulhador'),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
               TextFormField(
                 controller: _nomeController,
-                decoration: const InputDecoration(labelText: 'Nome'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Informe o nome' : null,
+                decoration: InputDecoration(labelText: 'Nome'),
+                validator: (v) => v==null||v.isEmpty ? 'Informe o nome' : null,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _matriculaController,
-                decoration: const InputDecoration(labelText: 'Matrícula'),
+                decoration: InputDecoration(labelText: 'Matrícula'),
                 validator: _validarMatricula,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _graduacaoSelecionada,
-                decoration: const InputDecoration(labelText: 'Graduação'),
-                items: graduacoes
-                    .map((grad) => DropdownMenuItem(
-                          value: grad,
-                          child: Text(grad),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _graduacaoSelecionada = value;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Selecione a graduação' : null,
+                decoration: InputDecoration(labelText: 'Graduação'),
+                items: graduacoes.map((g)=>DropdownMenuItem(
+                  value: g, child: Text(g),
+                )).toList(),
+                onChanged: (v)=>setState(()=>_graduacaoSelecionada=v),
+                validator: (v)=> v==null ? 'Selecione a graduação': null,
               ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _salvar,
-                child: const Text('Salvar'),
-              ),
+              SizedBox(height: 32),
+              ElevatedButton(onPressed: _salvar, child: Text('Salvar')),
             ],
           ),
         ),
